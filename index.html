@@ -7,17 +7,34 @@
     <meta name="theme-color" content="#1a1a2e">
     <title>コインコレクターゲーム</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48Y2lyY2xlIGN4PSIyNTYiIGN5PSIyNTYiIHI9IjI0MCIgZmlsbD0iI2ZmZDcwMCIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjgiLz48Y2lyY2xlIGN4PSIyNTYiIGN5PSIyNTYiIHI9IjE4MCIgZmlsbD0iI2ZmYzQwMCIgZmlsbC1vcGFjaXR5PSIwLjgiLz48dGV4dCB4PSIyNTYiIHk9IjI5MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0MCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiNmZmZmZmYiIHN0cm9rZT0iI2QyOTYwMCIgc3Ryb2tlLXdpZHRoPSI2Ij5DPC90ZXh0Pjwvc3ZnPg==" type="image/svg+xml">
 </head>
 <body>
+    <canvas id="backgroundCanvas"></canvas>
     <div class="game-container" role="application" aria-label="コインコレクターゲーム">
+        <div class="game-logo">
+            <div class="logo-coin"></div>
+            <h1>コインコレクター</h1>
+        </div>
         <canvas id="gameCanvas" aria-label="ゲーム画面"></canvas>
         <div class="score" role="status" aria-live="polite">スコア: <span id="scoreValue">0</span></div>
-        <div class="level" role="status" aria-live="polite">レベル: <span id="levelValue">1</span></div>
+        <div class="level" role="status" aria-live="polite">時間: <span id="levelValue">0秒</span></div>
         <div class="controls">
             <button id="startButton" aria-label="ゲームスタート">ゲームスタート</button>
+        </div>
+        <div class="how-to-play">
+            <h3>遊び方</h3>
+            <ol>
+                <li>矢印キーで青い丸を操作します</li>
+                <li>金色のコインを集めてスコアを稼ぎます</li>
+                <li>赤い障害物と壁に当たらないように注意してください</li>
+                <li>緑のパワーアップを取ると一時的に速度が上がります</li>
+                <li>プレイ時間が表示され、ゲームオーバー時に最終プレイ時間が表示されます</li>
+            </ol>
         </div>
         <div id="errorMessage" class="error-message" role="alert" aria-live="assertive"></div>
     </div>
     <script src="game.js"></script>
+    <script src="background.js"></script>
 </body>
 </html> 

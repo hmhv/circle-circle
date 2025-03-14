@@ -45,24 +45,21 @@ resizeCanvas();
 // ゲームの状態
 let gameRunning = false;
 let score = 0;
-let level = 1;
 let gameTime = 0;
-let lastLevelUp = 0;
 let gameOver = false;
 let animationFrameId = null;
 
-// レベル設定
-const LEVEL_INTERVAL = 10;
-const SPEED_INCREASE = 0.5;
-const OBSTACLE_INCREASE = 1.2;
-const INITIAL_LEVEL = 1;
+// オブジェクト設定
+let coinCount = 15;
+let obstacleCount = 25;
+const powerUpCount = 1;
 
 // プレイヤーの設定
 let player = {
     x: canvas.width / 2,
     y: canvas.height / 2,
     size: 20,
-    speed: 8,
+    speed: 5, // 速度を遅くして滑らかに
     dx: 0,
     dy: 0
 };
@@ -71,9 +68,6 @@ let player = {
 let coins = [];
 let obstacles = [];
 let powerUps = [];
-let coinCount = 15;
-let obstacleCount = 25;
-const powerUpCount = 1;
 
 // キー入力の状態
 const keys = {
@@ -113,6 +107,10 @@ canvas.addEventListener('touchmove', (e) => {
 window.addEventListener('keydown', (e) => {
     if (keys.hasOwnProperty(e.key)) {
         keys[e.key] = true;
+        // スクロールを防止
+        if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+            e.preventDefault();
+        }
     }
 });
 
@@ -258,38 +256,6 @@ function drawCollisionEffect(x, y, size) {
     }
 }
 
-// レベルアップ処理
-function levelUp() {
-    level++;
-    levelElement.textContent = level;
-    
-    coinCount = Math.floor(15 + level * 0.5);
-    obstacleCount = Math.floor(25 + level * 1.2);
-    
-    while (coins.length < coinCount) {
-        coins.push(new Coin());
-    }
-    while (obstacles.length < obstacleCount) {
-        obstacles.push(new Obstacle());
-    }
-    
-    coins.forEach(coin => {
-        const currentSpeed = Math.sqrt(coin.dx * coin.dx + coin.dy * coin.dy);
-        const newSpeed = 3 + (level - 1) * SPEED_INCREASE;
-        const speedRatio = newSpeed / currentSpeed;
-        coin.dx *= speedRatio;
-        coin.dy *= speedRatio;
-    });
-    
-    obstacles.forEach(obstacle => {
-        const currentSpeed = Math.sqrt(obstacle.dx * obstacle.dx + obstacle.dy * obstacle.dy);
-        const newSpeed = 4 + (level - 1) * SPEED_INCREASE;
-        const speedRatio = newSpeed / currentSpeed;
-        obstacle.dx *= speedRatio;
-        obstacle.dy *= speedRatio;
-    });
-}
-
 // ゲームの初期化
 function initGame() {
     try {
@@ -298,9 +264,7 @@ function initGame() {
         powerUps = [];
         
         score = 0;
-        level = 1;
         gameTime = 0;
-        lastLevelUp = 0;
         
         keys.ArrowLeft = false;
         keys.ArrowRight = false;
@@ -308,7 +272,7 @@ function initGame() {
         keys.ArrowDown = false;
         
         scoreElement.textContent = score;
-        levelElement.textContent = level;
+        levelElement.textContent = '0秒';
         
         player.x = canvas.width / 2 - player.size / 2;
         player.y = canvas.height / 2 - player.size / 2;
@@ -343,7 +307,7 @@ function drawGameOver() {
         
         ctx.font = '24px Arial';
         ctx.fillText(`スコア: ${score}`, canvas.width / 2, canvas.height / 2 + 10);
-        ctx.fillText(`レベル: ${level}`, canvas.width / 2, canvas.height / 2 + 40);
+        ctx.fillText(`プレイ時間: ${Math.floor(gameTime)}秒`, canvas.width / 2, canvas.height / 2 + 40);
         
         ctx.font = '20px Arial';
         ctx.fillText('スペースキーでリスタート', canvas.width / 2, canvas.height / 2 + 80);
@@ -398,12 +362,7 @@ function gameLoop() {
         
         // ゲーム時間の更新
         gameTime += 1/60;
-        
-        // レベルアップのチェック
-        if (gameTime - lastLevelUp >= LEVEL_INTERVAL) {
-            levelUp();
-            lastLevelUp = gameTime;
-        }
+        levelElement.textContent = Math.floor(gameTime) + '秒';
         
         // プレイヤーの更新と描画
         updatePlayer();

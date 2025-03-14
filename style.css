@@ -5,11 +5,24 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background: linear-gradient(135deg, #1a1a2e, #16213e, #1a1a2e);
     font-family: 'Arial', sans-serif;
     color: #fff;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    position: relative;
+    padding-top: 20px;
+    padding-bottom: 40px;
+}
+
+#backgroundCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background: linear-gradient(135deg, #1a1a2e, #16213e, #1a1a2e);
 }
 
 .game-container {
@@ -23,6 +36,7 @@ body {
     box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
     max-width: 100%;
     width: 800px;
+    z-index: 1;
 }
 
 #gameCanvas {
@@ -118,10 +132,101 @@ body {
     color: rgba(255, 255, 255, 0.8);
 }
 
+.how-to-play {
+    margin-top: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    padding: 15px;
+    text-align: left;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.how-to-play h3 {
+    color: #fff;
+    margin-top: 0;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    text-align: center;
+    font-size: 22px;
+}
+
+.how-to-play ol {
+    padding-left: 25px;
+    margin-bottom: 0;
+}
+
+.how-to-play li {
+    margin-bottom: 8px;
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.game-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.game-logo h1 {
+    font-size: 32px;
+    margin: 0;
+    text-shadow: 0 0 10px #60efff, 0 0 20px #00ff87;
+    background: linear-gradient(45deg, #ffffff, #60efff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.logo-coin {
+    width: 40px;
+    height: 40px;
+    background: radial-gradient(circle at 30% 30%, #ffffa0, #ffd700);
+    border-radius: 50%;
+    margin-right: 15px;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
+    position: relative;
+    animation: spin 10s linear infinite;
+}
+
+.logo-coin::after {
+    content: "C";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: rgba(0, 0, 0, 0.5);
+    font-weight: bold;
+    font-size: 20px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotateY(0deg);
+    }
+    100% {
+        transform: rotateY(360deg);
+    }
+}
+
 @media (max-width: 850px) {
     .game-container {
         padding: 10px;
         margin: 10px;
+    }
+
+    .game-logo h1 {
+        font-size: 24px;
+    }
+
+    .logo-coin {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .logo-coin::after {
+        font-size: 15px;
     }
 
     #gameCanvas {
@@ -136,6 +241,15 @@ body {
     #startButton {
         padding: 10px 20px;
         font-size: 16px;
+    }
+    
+    .how-to-play h3 {
+        font-size: 18px;
+    }
+    
+    .how-to-play li {
+        font-size: 14px;
+        margin-bottom: 5px;
     }
 }
 
