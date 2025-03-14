@@ -48,6 +48,12 @@ body {
     height: auto;
 }
 
+.game-status {
+    position: relative;
+    height: 0;
+    margin: 0;
+}
+
 .score {
     position: absolute;
     top: 20px;
@@ -253,13 +259,228 @@ body {
     }
 }
 
+@media (max-width: 650px) {
+    .score, .level {
+        position: static;
+        display: inline-block;
+        margin: 10px 5px;
+        font-size: 16px;
+    }
+    
+    .game-status {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+    }
+}
+
 @media (max-width: 480px) {
     .score, .level {
-        font-size: 16px;
+        font-size: 14px;
+        padding: 5px 8px;
     }
 
     #startButton {
         padding: 8px 16px;
         font-size: 14px;
+    }
+}
+
+.mobile-controls {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.d-pad {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    margin-bottom: 10px;
+}
+
+.control-btn {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.control-btn:active {
+    background: rgba(0, 255, 255, 0.3);
+    transform: scale(0.95);
+}
+
+.up-btn {
+    top: 0;
+    left: 50px;
+}
+
+.left-btn {
+    top: 50px;
+    left: 0;
+}
+
+.right-btn {
+    top: 50px;
+    left: 100px;
+}
+
+.down-btn {
+    top: 100px;
+    left: 50px;
+}
+
+/* タッチデバイス判定用のクラス（JavaScriptで追加） */
+.touch-device .mobile-controls {
+    display: flex;
+}
+
+.no-touch-device .mobile-controls {
+    display: none;
+}
+
+/* 小さい画面のレスポンシブ対応強化 */
+@media (max-width: 500px) {
+    .game-container {
+        padding: 10px;
+    }
+    
+    .d-pad {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .control-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+    
+    .up-btn {
+        left: 40px;
+    }
+    
+    .left-btn {
+        top: 40px;
+    }
+    
+    .right-btn {
+        top: 40px;
+        left: 80px;
+    }
+    
+    .down-btn {
+        top: 80px;
+        left: 40px;
+    }
+    
+    /* iPhone SE 対応 */
+    #gameCanvas {
+        max-height: 250px;
+    }
+    
+    .how-to-play {
+        max-height: 150px;
+        overflow-y: auto;
+    }
+}
+
+/* さらに小さい画面（iPhone SE等）向けの調整 */
+@media (max-width: 380px) {
+    .game-container {
+        padding: 8px;
+    }
+    
+    .game-logo h1 {
+        font-size: 20px;
+    }
+    
+    .logo-coin {
+        width: 25px;
+        height: 25px;
+    }
+    
+    .score, .level {
+        font-size: 12px;
+        padding: 4px 8px;
+    }
+    
+    .d-pad {
+        width: 100px;
+        height: 100px;
+        margin-bottom: 5px;
+    }
+    
+    .control-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 14px;
+    }
+    
+    .up-btn {
+        left: 33px;
+    }
+    
+    .left-btn {
+        top: 33px;
+        left: 0;
+    }
+    
+    .right-btn {
+        top: 33px;
+        left: 66px;
+    }
+    
+    .down-btn {
+        top: 66px;
+        left: 33px;
+    }
+    
+    #gameCanvas {
+        max-height: 200px;
+    }
+    
+    .mobile-controls {
+        margin-top: 10px;
+    }
+    
+    .controls {
+        margin-top: 10px;
+    }
+    
+    #startButton {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+    
+    .how-to-play {
+        padding: 10px;
+        margin-top: 10px;
+        max-height: 120px;
+    }
+    
+    .how-to-play h3 {
+        font-size: 16px;
+        margin-bottom: 5px;
+    }
+    
+    .how-to-play li {
+        font-size: 12px;
+        margin-bottom: 3px;
     }
 } 

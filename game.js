@@ -1,6 +1,23 @@
 // エラーメッセージ要素の取得
 const errorMessage = document.getElementById('errorMessage');
 
+// タッチデバイスの検出
+function detectTouchDevice() {
+    const isTouchDevice = 
+        ('ontouchstart' in window) ||
+        (navigator.maxTouchPoints > 0) ||
+        (navigator.msMaxTouchPoints > 0);
+    
+    if (isTouchDevice) {
+        document.body.classList.add('touch-device');
+    } else {
+        document.body.classList.add('no-touch-device');
+    }
+}
+
+// ページ読み込み時にタッチデバイス検出を実行
+detectTouchDevice();
+
 // エラーハンドリング関数
 function showError(message) {
     errorMessage.textContent = message;
@@ -28,19 +45,75 @@ const startButton = document.getElementById('startButton');
 const scoreElement = document.getElementById('scoreValue');
 const levelElement = document.getElementById('levelValue');
 
+// モバイルコントロールの取得
+const upBtn = document.getElementById('upBtn');
+const leftBtn = document.getElementById('leftBtn');
+const rightBtn = document.getElementById('rightBtn');
+const downBtn = document.getElementById('downBtn');
+
+// 画面サイズに応じたサイズ調整値を計算する関数
+function getScaleFactor() {
+    // 基準は幅800pxの画面
+    const baseWidth = 800;
+    const currentWidth = canvas.width;
+    
+    // スケール係数を計算（最小値を0.5に変更して、より小さくする）
+    return Math.max(0.5, currentWidth / baseWidth * 0.8); // 0.8を掛けて全体的に小さくする
+}
+
 // キャンバスサイズの設定
 function resizeCanvas() {
     const container = canvas.parentElement;
     const containerWidth = container.clientWidth - 40; // パディングを考慮
-    const containerHeight = window.innerHeight - 200; // 余白を考慮
+    
+    // 小さい画面では高さも制限する
+    let maxHeight = window.innerHeight - 200; // 余白を考慮
+    
+    // iPhone SEなどの小さい画面のための調整
+    if (window.innerWidth <= 380) {
+        maxHeight = Math.min(200, maxHeight);
+    } else if (window.innerWidth <= 500) {
+        maxHeight = Math.min(250, maxHeight);
+    }
     
     canvas.width = Math.min(800, containerWidth);
-    canvas.height = Math.min(600, containerHeight);
+    canvas.height = Math.min(600, maxHeight);
+    
+    // 画面サイズが変わったらゲーム要素のサイズも調整
+    const scaleFactor = getScaleFactor();
+    
+    // プレイヤーのサイズ調整
+    if (typeof player !== 'undefined' && player) {
+        // サイズを調整（最小10px）
+        player.size = Math.max(10, Math.floor(20 * scaleFactor));
+        
+        // 位置の調整
+        player.x = Math.min(player.x, canvas.width - player.size);
+        player.y = Math.min(player.y, canvas.height - player.size);
+    }
+    
+    // コインと障害物のサイズを調整
+    if (coins && coins.length > 0) {
+        coins.forEach(coin => {
+            coin.size = Math.max(8, Math.floor(15 * scaleFactor));
+        });
+    }
+    
+    if (obstacles && obstacles.length > 0) {
+        obstacles.forEach(obstacle => {
+            obstacle.size = Math.max(10, Math.floor(20 * scaleFactor));
+        });
+    }
+    
+    if (powerUps && powerUps.length > 0) {
+        powerUps.forEach(powerUp => {
+            powerUp.size = Math.max(8, Math.floor(15 * scaleFactor));
+        });
+    }
 }
 
 // リサイズイベントの設定
 window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
 
 // ゲームの状態
 let gameRunning = false;
@@ -58,7 +131,7 @@ const powerUpCount = 1;
 let player = {
     x: canvas.width / 2,
     y: canvas.height / 2,
-    size: 20,
+    size: 20, // この値はresizeCanvasで上書きされる
     speed: 5, // 速度を遅くして滑らかに
     dx: 0,
     dy: 0
@@ -120,6 +193,64 @@ window.addEventListener('keyup', (e) => {
     }
 });
 
+// タッチコントロールのイベントリスナー
+upBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    keys.ArrowUp = true;
+});
+
+upBtn.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    keys.ArrowUp = false;
+});
+
+downBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    keys.ArrowDown = true;
+});
+
+downBtn.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    keys.ArrowDown = false;
+});
+
+leftBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    keys.ArrowLeft = true;
+});
+
+leftBtn.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    keys.ArrowLeft = false;
+});
+
+rightBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    keys.ArrowRight = true;
+});
+
+rightBtn.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    keys.ArrowRight = false;
+});
+
+// マウスでも使えるようにする
+upBtn.addEventListener('mousedown', () => keys.ArrowUp = true);
+upBtn.addEventListener('mouseup', () => keys.ArrowUp = false);
+upBtn.addEventListener('mouseleave', () => keys.ArrowUp = false);
+
+downBtn.addEventListener('mousedown', () => keys.ArrowDown = true);
+downBtn.addEventListener('mouseup', () => keys.ArrowDown = false);
+downBtn.addEventListener('mouseleave', () => keys.ArrowDown = false);
+
+leftBtn.addEventListener('mousedown', () => keys.ArrowLeft = true);
+leftBtn.addEventListener('mouseup', () => keys.ArrowLeft = false);
+leftBtn.addEventListener('mouseleave', () => keys.ArrowLeft = false);
+
+rightBtn.addEventListener('mousedown', () => keys.ArrowRight = true);
+rightBtn.addEventListener('mouseup', () => keys.ArrowRight = false);
+rightBtn.addEventListener('mouseleave', () => keys.ArrowRight = false);
+
 // プレイヤーの描画
 function drawPlayer() {
     try {
@@ -138,7 +269,8 @@ function drawPlayer() {
 // コインクラス
 class Coin {
     constructor() {
-        this.size = 15;
+        const scaleFactor = getScaleFactor();
+        this.size = Math.max(8, Math.floor(15 * scaleFactor));
         this.x = Math.random() * (canvas.width - this.size);
         this.y = Math.random() * (canvas.height - this.size);
         this.speed = 3;
@@ -172,14 +304,19 @@ class Coin {
 // 障害物クラス
 class Obstacle {
     constructor() {
-        this.size = 20;
+        const scaleFactor = getScaleFactor();
+        this.size = Math.max(10, Math.floor(20 * scaleFactor));
+        
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
         const radius = Math.min(canvas.width, canvas.height) / 2.5;
         const angle = Math.random() * Math.PI * 2;
         this.x = centerX + Math.cos(angle) * radius;
         this.y = centerY + Math.sin(angle) * radius;
-        this.speed = 4;
+        
+        // 障害物の初期スピードを遅くする
+        this.baseSpeed = 2.5; // 基本スピードを4から2.5に減少
+        this.speed = this.baseSpeed;
         this.dx = Math.cos(angle) * this.speed;
         this.dy = Math.sin(angle) * this.speed;
     }
@@ -210,7 +347,8 @@ class Obstacle {
 // パワーアップクラス
 class PowerUp {
     constructor() {
-        this.size = 15;
+        const scaleFactor = getScaleFactor();
+        this.size = Math.max(8, Math.floor(15 * scaleFactor));
         this.x = Math.random() * (canvas.width - this.size);
         this.y = Math.random() * (canvas.height - this.size);
         this.active = true;
@@ -274,14 +412,32 @@ function initGame() {
         scoreElement.textContent = score;
         levelElement.textContent = '0秒';
         
+        // 画面サイズに合わせてプレイヤーのサイズを設定
+        const scaleFactor = getScaleFactor();
+        player.size = Math.max(8, Math.floor(18 * scaleFactor)); // さらに小さく
+        player.speed = Math.max(2.5, Math.floor(5 * scaleFactor)); // プレイヤー速度も調整
+        
         player.x = canvas.width / 2 - player.size / 2;
         player.y = canvas.height / 2 - player.size / 2;
+        
+        // ゲームオブジェクトの生成
+        const coinSizeScaled = Math.max(6, Math.floor(12 * scaleFactor)); // コインも小さく
+        const obstacleSizeScaled = Math.max(8, Math.floor(16 * scaleFactor)); // 障害物も小さく
+        const powerUpSizeScaled = Math.max(6, Math.floor(12 * scaleFactor)); // パワーアップも小さく
+        
+        // 難易度調整：iPhone SEなどの小さい画面では障害物の数を減らす
+        let adjustedObstacleCount = obstacleCount;
+        if (window.innerWidth <= 380) {
+            adjustedObstacleCount = Math.floor(obstacleCount * 0.7); // 小さい画面では70%の障害物数
+        } else if (window.innerWidth <= 500) {
+            adjustedObstacleCount = Math.floor(obstacleCount * 0.8); // 中間サイズでは80%の障害物数
+        }
         
         for (let i = 0; i < coinCount; i++) {
             coins.push(new Coin());
         }
         
-        for (let i = 0; i < obstacleCount; i++) {
+        for (let i = 0; i < adjustedObstacleCount; i++) {
             obstacles.push(new Obstacle());
         }
         
@@ -297,20 +453,26 @@ function initGame() {
 // ゲームオーバー画面の描画
 function drawGameOver() {
     try {
+        const scaleFactor = getScaleFactor();
+        
         ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
         ctx.fillStyle = '#FFFFFF';
-        ctx.font = '48px Arial';
+        ctx.font = `${Math.floor(48 * scaleFactor)}px Arial`;
         ctx.textAlign = 'center';
-        ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 50);
+        ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 50 * scaleFactor);
         
-        ctx.font = '24px Arial';
-        ctx.fillText(`スコア: ${score}`, canvas.width / 2, canvas.height / 2 + 10);
-        ctx.fillText(`プレイ時間: ${Math.floor(gameTime)}秒`, canvas.width / 2, canvas.height / 2 + 40);
+        ctx.font = `${Math.floor(24 * scaleFactor)}px Arial`;
+        ctx.fillText(`スコア: ${score}`, canvas.width / 2, canvas.height / 2 + 10 * scaleFactor);
+        ctx.fillText(`プレイ時間: ${Math.floor(gameTime)}秒`, canvas.width / 2, canvas.height / 2 + 40 * scaleFactor);
         
-        ctx.font = '20px Arial';
-        ctx.fillText('スペースキーでリスタート', canvas.width / 2, canvas.height / 2 + 80);
+        ctx.font = `${Math.floor(20 * scaleFactor)}px Arial`;
+        if (document.body.classList.contains('touch-device')) {
+            ctx.fillText('画面をタップしてリスタート', canvas.width / 2, canvas.height / 2 + 80 * scaleFactor);
+        } else {
+            ctx.fillText('スペースキーでリスタート', canvas.width / 2, canvas.height / 2 + 80 * scaleFactor);
+        }
     } catch (error) {
         console.error('Error drawing game over screen:', error);
     }
@@ -368,6 +530,9 @@ function gameLoop() {
         updatePlayer();
         drawPlayer();
         
+        // 時間経過による難易度上昇（緩やかに）
+        const difficultyFactor = 1 + (gameTime / 60); // 1分ごとに速度が1倍増加
+        
         // コインの更新と描画
         coins.forEach(coin => {
             coin.update();
@@ -384,6 +549,14 @@ function gameLoop() {
         
         // 障害物の更新と描画
         obstacles.forEach(obstacle => {
+            // 時間経過で速度を緩やかに上げる
+            const speedMultiplier = Math.min(difficultyFactor, 2.0); // 最大2倍まで
+            const currentSpeed = obstacle.baseSpeed * speedMultiplier;
+            const ratio = currentSpeed / Math.sqrt(obstacle.dx * obstacle.dx + obstacle.dy * obstacle.dy);
+            
+            obstacle.dx *= ratio;
+            obstacle.dy *= ratio;
+            
             obstacle.update();
             obstacle.draw();
             
@@ -443,4 +616,17 @@ window.addEventListener('keydown', (e) => {
         initGame();
         gameLoop();
     }
-}); 
+});
+
+// タッチデバイス用のリスタート処理
+canvas.addEventListener('click', () => {
+    if (gameOver) {
+        gameOver = false;
+        gameRunning = true;
+        initGame();
+        gameLoop();
+    }
+});
+
+// 初期キャンバスサイズを設定（プレイヤー定義後に実行）
+resizeCanvas(); 
