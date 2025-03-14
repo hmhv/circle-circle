@@ -67,7 +67,7 @@ function resizeCanvas() {
     const containerWidth = container.clientWidth - 40; // パディングを考慮
     
     // 小さい画面では高さも制限する
-    let maxHeight = window.innerHeight - 200; // 余白を考慮
+    let maxHeight = window.innerHeight - 250; // より余白を大きくして調整
     
     // iPhone SEなどの小さい画面のための調整
     if (window.innerWidth <= 380) {
@@ -76,7 +76,9 @@ function resizeCanvas() {
         maxHeight = Math.min(250, maxHeight);
     }
     
-    canvas.width = Math.min(800, containerWidth);
+    // 幅は800pxを超えないようにし、かつcontainerWidthを超えないようにする
+    const newWidth = Math.min(800, containerWidth, window.innerWidth - 40);
+    canvas.width = newWidth;
     canvas.height = Math.min(600, maxHeight);
     
     // 画面サイズが変わったらゲーム要素のサイズも調整
