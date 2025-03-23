@@ -255,17 +255,67 @@ rightBtn.addEventListener('mouseleave', () => keys.ArrowRight = false);
 
 // プレイヤーの描画
 function drawPlayer() {
-    try {
+    ctx.save();
+    
+    // 外側のグロー効果
+    ctx.beginPath();
+    ctx.arc(player.x + player.size/2, player.y + player.size/2, 
+            player.size/2 + 8, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0, 255, 255, 0.3)';
+    ctx.fill();
+    
+    // プレイヤーの軌跡エフェクト
+    if (player.speed > player.baseSpeed) {
         ctx.beginPath();
-        ctx.arc(player.x + player.size/2, player.y + player.size/2, player.size/2, 0, Math.PI * 2);
-        ctx.fillStyle = '#0000FF';
+        ctx.arc(player.x + player.size/2, player.y + player.size/2, 
+                player.size/2 + 5, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
         ctx.fill();
-        ctx.strokeStyle = '#FFFFFF';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-    } catch (error) {
-        console.error('Error drawing player:', error);
     }
+    
+    // プレイヤーの本体
+    ctx.beginPath();
+    ctx.arc(player.x + player.size/2, player.y + player.size/2, 
+            player.size/2, 0, Math.PI * 2);
+    ctx.fillStyle = '#00FFFF'; // シアン色に変更
+    ctx.fill();
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // プレイヤーの位置を示す十字マーカー
+    const markerSize = player.size * 0.8;
+    const centerX = player.x + player.size/2;
+    const centerY = player.y + player.size/2;
+    
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 2;
+    
+    // 上
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY - markerSize);
+    ctx.lineTo(centerX, centerY - markerSize/2);
+    ctx.stroke();
+    
+    // 下
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY + markerSize/2);
+    ctx.lineTo(centerX, centerY + markerSize);
+    ctx.stroke();
+    
+    // 左
+    ctx.beginPath();
+    ctx.moveTo(centerX - markerSize, centerY);
+    ctx.lineTo(centerX - markerSize/2, centerY);
+    ctx.stroke();
+    
+    // 右
+    ctx.beginPath();
+    ctx.moveTo(centerX + markerSize/2, centerY);
+    ctx.lineTo(centerX + markerSize, centerY);
+    ctx.stroke();
+    
+    ctx.restore();
 }
 
 // コインクラス
@@ -349,27 +399,42 @@ class Obstacle {
 // パワーアップクラス
 class PowerUp {
     constructor() {
-        const scaleFactor = getScaleFactor();
-        this.size = Math.max(8, Math.floor(15 * scaleFactor));
+        this.size = Math.max(15, Math.floor(25 * getScaleFactor()));
         this.x = Math.random() * (canvas.width - this.size);
         this.y = Math.random() * (canvas.height - this.size);
         this.active = true;
+        this.pulseSize = 0;
+        this.pulseDirection = 1;
     }
 
     draw() {
-        if (this.active) {
-            try {
-                ctx.beginPath();
-                ctx.arc(this.x + this.size/2, this.y + this.size/2, this.size/2, 0, Math.PI * 2);
-                ctx.fillStyle = '#00FF00';
-                ctx.fill();
-                ctx.strokeStyle = '#FFFFFF';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-            } catch (error) {
-                console.error('Error drawing power-up:', error);
-            }
-        }
+        if (!this.active) return;
+        
+        // パルスエフェクト
+        this.pulseSize += 0.1 * this.pulseDirection;
+        if (this.pulseSize > 1) this.pulseDirection = -1;
+        if (this.pulseSize < 0) this.pulseDirection = 1;
+        
+        const glowSize = this.size + (this.pulseSize * 5);
+        
+        // 外側のグロー効果
+        ctx.beginPath();
+        ctx.arc(this.x + this.size/2, this.y + this.size/2, glowSize, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
+        ctx.fill();
+        
+        // メインの円
+        ctx.beginPath();
+        ctx.arc(this.x + this.size/2, this.y + this.size/2, this.size/2, 0, Math.PI * 2);
+        ctx.fillStyle = '#FFD700';
+        ctx.fill();
+        
+        // スピードアップアイコン
+        ctx.fillStyle = 'white';
+        ctx.font = `${Math.floor(this.size/2)}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('⚡', this.x + this.size/2, this.y + this.size/2);
     }
 }
 
@@ -395,6 +460,23 @@ function drawCollisionEffect(x, y, size) {
         console.error('Error drawing collision effect:', error);
     }
 }
+
+// サウンドマネージャー
+const SoundManager = {
+    sounds: {},
+    init() {
+        this.sounds.coin = new Audio('https://assets.mixkit.co/active_storage/sfx/2001/2001-preview.mp3');
+        this.sounds.powerUp = new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3');
+        this.sounds.collision = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
+        this.sounds.gameOver = new Audio('https://assets.mixkit.co/active_storage/sfx/1430/1430-preview.mp3');
+    },
+    play(soundName) {
+        if (this.sounds[soundName]) {
+            this.sounds[soundName].currentTime = 0;
+            this.sounds[soundName].play().catch(error => console.log('Sound play failed:', error));
+        }
+    }
+};
 
 // ゲームの初期化
 function initGame() {
@@ -446,6 +528,8 @@ function initGame() {
         for (let i = 0; i < powerUpCount; i++) {
             powerUps.push(new PowerUp());
         }
+
+        SoundManager.init();
     } catch (error) {
         showError('ゲームの初期化に失敗しました。');
         console.error('Game initialization error:', error);
@@ -517,6 +601,43 @@ function updatePlayer() {
     }
 }
 
+// スコアシステム
+let combo = 0;
+let comboTimer = 0;
+const COMBO_TIME = 120; // フレーム数（約2秒）
+
+function updateScore(points) {
+    // コンボシステム
+    combo++;
+    comboTimer = COMBO_TIME;
+    
+    // コンボボーナスの計算
+    const comboBonus = Math.floor(combo / 3);
+    const finalPoints = points + (comboBonus * 5);
+    
+    score += finalPoints;
+    
+    // スコア表示の更新
+    if (combo > 1) {
+        scoreElement.textContent = `${score} (${combo}コンボ! +${finalPoints})`;
+        scoreElement.style.color = '#FFD700'; // 黄金色
+    } else {
+        scoreElement.textContent = score;
+        scoreElement.style.color = '#FFFFFF'; // 白色
+    }
+}
+
+function updateComboTimer() {
+    if (comboTimer > 0) {
+        comboTimer--;
+        if (comboTimer === 0) {
+            combo = 0;
+            scoreElement.textContent = score;
+            scoreElement.style.color = '#FFFFFF';
+        }
+    }
+}
+
 // ゲームループ
 function gameLoop() {
     try {
@@ -541,10 +662,7 @@ function gameLoop() {
             coin.draw();
             
             if (checkCollision(player, coin)) {
-                score += 10;
-                scoreElement.textContent = score;
-                coins = coins.filter(c => c !== coin);
-                coins.push(new Coin());
+                collectCoin(coin);
                 drawCollisionEffect(coin.x + coin.size/2, coin.y + coin.size/2, coin.size);
             }
         });
@@ -572,7 +690,7 @@ function gameLoop() {
             powerUp.draw();
             
             if (powerUp.active && checkCollision(player, powerUp)) {
-                player.speed *= 1.5;
+                applyPowerUp();
                 powerUp.active = false;
                 setTimeout(() => {
                     player.speed /= 1.5;
@@ -582,6 +700,8 @@ function gameLoop() {
                 drawCollisionEffect(powerUp.x + powerUp.size/2, powerUp.y + powerUp.size/2, powerUp.size);
             }
         });
+        
+        updateComboTimer();
         
         animationFrameId = requestAnimationFrame(gameLoop);
     } catch (error) {
@@ -631,4 +751,26 @@ canvas.addEventListener('click', () => {
 });
 
 // 初期キャンバスサイズを設定（プレイヤー定義後に実行）
-resizeCanvas(); 
+resizeCanvas();
+
+function collectCoin(coin) {
+    SoundManager.play('coin');
+    updateScore(10);
+    coins = coins.filter(c => c !== coin);
+}
+
+function applyPowerUp() {
+    SoundManager.play('powerUp');
+    player.speed *= 1.5;
+    player.powerUpTimer = 300;
+    
+    // スコア表示部分にパワーアップメッセージを表示
+    const originalScore = scoreElement.textContent;
+    scoreElement.textContent = 'スピードアップ！';
+    scoreElement.style.color = '#00FFFF'; // シアン色
+    
+    setTimeout(() => {
+        scoreElement.textContent = originalScore;
+        scoreElement.style.color = combo > 1 ? '#FFD700' : '#FFFFFF';
+    }, 1000);
+} 
